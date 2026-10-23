@@ -38,11 +38,30 @@ function leave(socket){
  else {if(r.hostId===socket.id)r.hostId=r.players.keys().next().value;sendRoom(r);io.to(code).emit('match_state',matchState(r));}
  broadcastPublic();
 }
-function matchState(r){return {room:roomSnapshot(r,''),players:[...r.players.values()].map(p=>({...p,keys:undefined})),teamCrystals:r.teamCrystals,elapsed:r.started?Math.floor((now()-r.startedAt)/1000):0,result:r.result};}
+function matchState(r) {
+  return {
+    room: roomSnapshot(r, ''),
+    players: [...r.players.values()].map(p => ({
+      ...p,
+      keys: undefined
+    })),
+    crystals: r.crystals || [],
+    teamCrystals: r.teamCrystals,
+    elapsed: r.started
+      ? Math.floor((now() - r.startedAt) / 1000)
+      : 0,
+    result: r.result
+  };
+}
 function startMatch(r){
  if(r.started)return;
  if(r.players.size<5){return;}
- r.started=true;r.startedAt=now();r.result=null;r.teamCrystals=0;
+ r.started = true;
+r.startedAt = now();
+r.result = null;
+r.teamCrystals = 0;
+r.crystals = [];
+r.nextCrystal = 0;
  for(const p of r.players.values()){p.x=80+Math.random()*80;p.y=GROUND_Y;p.vy=0;p.crystals=0;p.alive=true;p.keys={};}
  io.to(r.code).emit('match_started',roomSnapshot(r,r.hostId));sendRoom(r);
  io.to(r.code).emit('match_state',matchState(r));broadcastPublic();
